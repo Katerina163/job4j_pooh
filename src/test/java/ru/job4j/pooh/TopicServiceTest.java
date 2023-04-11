@@ -30,4 +30,36 @@ public class TopicServiceTest {
         assertThat(result1.text(), is("temperature=18"));
         assertThat(result2.text(), is(""));
     }
+
+    @Test
+    public void whenTwoTopic() {
+        TopicService topicService = new TopicService();
+        topicService.process(
+                new Req("GET", "topic", "weather", "client407")
+        );
+        topicService.process(
+                new Req("GET", "topic", "pressure", "client407")
+        );
+        topicService.process(
+                new Req("POST", "topic", "weather", "temperature=18")
+        );
+        topicService.process(
+                new Req("POST", "topic", "pressure", "pressure=755mmHg")
+        );
+        topicService.process(
+                new Req("POST", "topic", "weather", "temperature=8")
+        );
+        Resp result1 = topicService.process(
+                new Req("GET", "topic", "weather", "client407")
+        );
+        Resp result2 = topicService.process(
+                new Req("GET", "topic", "weather", "client407")
+        );
+        Resp result3 = topicService.process(
+                new Req("GET", "topic", "pressure", "client407")
+        );
+        assertThat(result1.text(), is("temperature=18"));
+        assertThat(result2.text(), is("temperature=8"));
+        assertThat(result3.text(), is("pressure=755mmHg"));
+    }
 }
