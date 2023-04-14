@@ -3,24 +3,13 @@ package ru.job4j.pooh;
 public record Req(String httpRequestType, String poohMode, String sourceName, String param) {
 
     public static Req of(String content) {
-        String[] request = content.split(System.lineSeparator());
+        String[] request = content.split("[\\s/]+");
         String param;
-        String sourceName;
-        String[] request0 = request[0].split("/");
-        if (request0[2].endsWith("P")) {
-            sourceName = request0[2].substring(0, request0[2].indexOf(" "));
+        if ("POST".equals(request[0])) {
+            param = request[request.length - 1];
         } else {
-            sourceName = request0[2];
+            param = "HTTP".equals(request[3]) ? "" : request[3];
         }
-        if (request[0].startsWith("P")) {
-            param = request[7];
-        } else {
-            if (request0[3].startsWith("c")) {
-                param = request0[3].substring(0, request0[3].indexOf(" "));
-            } else {
-                param = "";
-            }
-        }
-        return new Req(request0[0].trim(), request0[1], sourceName, param);
+        return new Req(request[0], request[1], request[2], param);
     }
 }

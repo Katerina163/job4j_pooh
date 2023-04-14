@@ -9,23 +9,13 @@ public class TopicService implements Service {
 
     @Override
     public Resp process(Req req) {
-        if ("GET".equals(req.httpRequestType())) {
-            return get(req);
-        } else {
-            return post(req);
-        }
+        return "GET".equals(req.httpRequestType()) ? get(req) : post(req);
     }
 
     private Resp post(Req req) {
         var map = queue.putIfAbsent(req.sourceName(), new ConcurrentHashMap<>());
-        for (var m : map.entrySet()) {
-            map.putIfAbsent(m.getKey(), new ConcurrentLinkedQueue<>()).add(req.param());
-        }
-        if (!map.isEmpty()) {
-            return new Resp(null, "200");
-        } else {
-            return new Resp(null, "204");
-        }
+        map.forEach((k, v) -> v.add(req.param()));
+        return map.isEmpty() ? new Resp(null, "204") : new Resp(null, "200");
     }
 
     private Resp get(Req req) {
@@ -34,11 +24,6 @@ public class TopicService implements Service {
         mapQueue.putIfAbsent(req.param(), new ConcurrentLinkedQueue<>());
         var queue = mapQueue.get(req.param());
         String text = queue.poll();
-        if (text == null || text.isEmpty()) {
-            text = "";
-            return new Resp(text, "204");
-        } else {
-            return new Resp(text, "200");
-        }
+        return text == null || text.isEmpty() ? new Resp("", "204") : new Resp(text, "200");
     }
 }
